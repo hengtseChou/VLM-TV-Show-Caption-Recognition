@@ -1,5 +1,6 @@
 import os
 import re
+import sys
 
 import pandas as pd
 import pyarrow.parquet as pq
@@ -7,15 +8,27 @@ from tqdm import tqdm
 
 # Compile the regular expression outside of the loop
 pattern = re.compile("[，。！？、\n]")
-files = [
-    # "synth_data_source/multiturn_chat_0.8m-chinese-zhtw/data/train-00000-of-00002-45a66745de875e37.parquet",
-    # "synth_data_source/multiturn_chat_0.8m-chinese-zhtw/data/train-00001-of-00002-46c848345f1160c0.parquet",
-    # "synth_data_source/zhtw-sentence-error-correction/alpha/out.jsonl",
-    # "synth_data_source/zhtw-sentence-error-correction/beta/out.jsonl",
-    # "synth_data_source/zhtw-sentence-error-correction/gamma/out.jsonl",
-    "synth_data_source/generated_chat_0.4m-chinese-zhtw/data/train-00000-of-00002-067cfcd106ddd691.parquet",
-    "synth_data_source/generated_chat_0.4m-chinese-zhtw/data/train-00001-of-00002-bef6d2151f59f001.parquet",
-]
+files = {
+    "multiturn_chat_0.8m-chinese-zhtw": [
+        "synth_data_source/multiturn_chat_0.8m-chinese-zhtw/data/train-00000-of-00002-45a66745de875e37.parquet",
+        "synth_data_source/multiturn_chat_0.8m-chinese-zhtw/data/train-00001-of-00002-46c848345f1160c0.parquet",
+    ],
+    "zhtw-sentence-error-correction": [
+        "synth_data_source/zhtw-sentence-error-correction/alpha/out.jsonl",
+        "synth_data_source/zhtw-sentence-error-correction/beta/out.jsonl",
+        "synth_data_source/zhtw-sentence-error-correction/gamma/out.jsonl",
+    ],
+    "generated_chat_0.4m-chinese-zhtw": [
+        "synth_data_source/generated_chat_0.4m-chinese-zhtw/data/train-00000-of-00002-067cfcd106ddd691.parquet",
+        "synth_data_source/generated_chat_0.4m-chinese-zhtw/data/train-00001-of-00002-bef6d2151f59f001.parquet",
+    ],
+    "train_1m-chinese-zhtw": [
+        "synth_data_source/train_1m-chinese-zhtw/data/train-00000-of-00001-eb2146fa64556302.parquet",
+    ],
+    "dolly-15k-chinese-zhtw": [
+        "synth_data_source/dolly-15k-chinese-zhtw/data/train-00000-of-00001-839cf763a52639ec.parquet",
+    ],
+}
 unique_sentences = set()
 
 
@@ -30,7 +43,7 @@ class SentencesExtracter:
         sentences = [
             s.lstrip("- ").split(".")[1].strip() if "." in s else s.lstrip("- ").strip()
             for s in sentences
-            if s and len(s) < 18
+            if s and len(s) < 18 and "：" not in s
         ]
         return sentences
 
@@ -105,6 +118,36 @@ class SentencesExtracter:
             with open("sentences.txt", "a") as f:
                 f.writelines(self._write_buffer)
 
+    def _process_train_1m_dataset(self):
+
+        df = pq.read_table(source=self.file).to_pandas()
+
+        # Progress bar for loop
+        for i in tqdm(range(df.shape[0])):
+            output = df.iloc[i, 2]
+            sentences = self._text_to_sentences(output)
+            self._write_sentences(sentences)
+
+        # Write any remaining sentences in buffer
+        if self._write_buffer:
+            with open("sentences.txt", "a") as f:
+                f.writelines(self._write_buffer)
+
+    def _process_dolly_15k_dataset(self):
+
+        df = pq.read_table(source=self.file).to_pandas()
+
+        # Progress bar for loop
+        for i in tqdm(range(df.shape[0])):
+            output = df.iloc[i, 2]
+            sentences = self._text_to_sentences(output)
+            self._write_sentences(sentences)
+
+        # Write any remaining sentences in buffer
+        if self._write_buffer:
+            with open("sentences.txt", "a") as f:
+                f.writelines(self._write_buffer)
+
     def process(self):
 
         if "multiturn_chat_0.8m-chinese-zhtw" in self.file:
@@ -116,18 +159,28 @@ class SentencesExtracter:
         elif "generated_chat_0.4m-chinese-zhtw" in self.file:
             self._process_generated_chat_dataset()
 
+        elif "train_1m-chinese-zhtw" in self.file:
+            self._process_train_1m_dataset()
+
+        elif "dolly-15k-chinese-zhtw" in self.file:
+            self._process_dolly_15k_dataset()
+
+selected_dataset = sys.argv[1]
+if selected_dataset not in files.keys():
+    raise Exception("Error: unknown dataset")
+print(f":: Using dataset: {selected_dataset}")
 
 if os.path.isfile("sentences.txt"):
     print("\n:: Found sentences.txt: removing")
     os.remove("sentences.txt")
 
 print(":: Extracting sentences from files")
-for file in files:
+for file in files[selected_dataset]:
     print(f"   - {file}")
 
-for j, file in enumerate(files):
+for j, file in enumerate(files[selected_dataset]):
 
-    print(f"\n:: ({j+1}/{len(files)}): {file}")
+    print(f"\n:: ({j+1}/{len(files[selected_dataset])}): {file}")
     extracter = SentencesExtracter(file, unique_sentences)
     extracter.process()
 

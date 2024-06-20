@@ -16,7 +16,6 @@ fonts_dir = "synth_data_source/fonts"
 sentences_file = "sentences.txt"
 dataset_file = "subtitles_dataset.json"
 descriptions = [
-    # "圖片中央下方的白色字幕內容為何？",
     "請辨認圖片正中間下方的白色字幕，並回傳字幕內容。不要回傳任何字幕本身以外的文字。",
     "請辨認圖片中央底部的白色字幕，然後回傳該字幕的內容。",
     "請提供圖片中央下方的白色字幕，不需其他說明。",

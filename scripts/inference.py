@@ -29,4 +29,4 @@ args = type(
 answers = json.loads(eval_model(args))
 answers = [{"id": answer["id"].split(".")[0], "text": answer["text"]} for answer in answers]
 df = pd.DataFrame(answers)
-df.to_csv(answer_file)
+df.to_csv(answer_file, index=False)
