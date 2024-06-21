@@ -25,8 +25,8 @@ esac
 done
 
 source .data_prep/bin/activate
-python extract_sentences.py $DATASET
-python generate_custom_dataset.py $NUM_OF_IMG
+python scripts/extract_sentences.py $DATASET
+python scripts/generate_custom_dataset.py $NUM_OF_IMG
 deactivate
 
 source .tinyllava_factory/bin/activate
