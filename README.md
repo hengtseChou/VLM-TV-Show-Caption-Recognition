@@ -50,14 +50,14 @@ The resulting project structure should look like this
 
 During experiments, we discovered several significant factors that have the greatest impact on the fine-tuning result:
 
-1. The base model
-2. The text data
-3. The image data
-4. The prompt
+1. Base model
+2. Text data
+3. Image data
+4. Instruction
 
 In particular, the text data should cover a wide range of dialogue scenarios to enhance the model's capabilities in the given language.
 
-After conducting a data survey, we experimented with 5 text datasets in zh-tw and 1 image dataset depicting human activities. While the text datasets may vary slightly in format and content, they all share one common element - dialogues. These dialogues have been extracted and trimmed to create suitable subtitles. These subtitles were saved as `sentences.txt` files. Next, sentences and images were randomly selected to create synthetic images. Finally, the json file `subtitles_dataset.json` was created in the following format:
+After conducting a data survey, we experimented with 4 text datasets in zh-tw and 1 image dataset depicting human activities. While the text datasets may vary slightly in format and content, they all share one common element - dialogues. These dialogues have been extracted and trimmed to create suitable subtitles. These subtitles were saved as `sentences.txt` files. Next, sentences and images were randomly selected to create synthetic images. Finally, the json file `subtitles_dataset.json` was created in the following format:
 
 ```json
 [
@@ -120,13 +120,12 @@ The values of `BATCH_SIZE`, `GRADIENT_ACCUMULATION_STEPS` and `LEARNING_RATE` ar
 
 These are the inference result of the 5 fine-tuning tasks. The metric we use here is Character-Error Rate (CER).
 
-| Dataset                          | Public | Private |
-| :------------------------------- | :----: | :-----: |
-| multiturn_chat_0.8m-chinese-zhtw |  9.9   |         |
-| zhtw-sentence-error-correction   |  9.54  |         |
-| generated_chat_0.4m-chinese-zhtw |  9.65  |         |
-| train_1m-chinese-zhtw            |        |         |
-| dolly-15k-chinese-zhtw           |        |         |
+| Dataset                          | Private | Public  |
+| :------------------------------- | :-----: | :-----: |
+| multiturn_chat_0.8m-chinese-zhtw | 9.70000 | 9.90000 |
+| zhtw-sentence-error-correction   | 9.40142 | 9.54000 |
+| generated_chat_0.4m-chinese-zhtw | 9.58571 | 9.65000 |
+| train_1m-chinese-zhtw            | 9.75285 | 9.93666 |
 
 Despite successfully completing all fine-tuning tasks, the outcome is rather unsatisfactory.
 
